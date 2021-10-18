@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  companion:
+    container_name: companion
+    build: 
+      context: ./companion
+    volumes:
+    - data:/data
+    networks: 
+    - rbac
+  rbac-audit:
+    depends_on: 
+    - companion
+    container_name: rbac
+    build: 
+      context: ./rbac-audit
+    networks: 
+    - rbac
+    volumes:
+    - data:/data
+networks: 
+  rbac:
+
+volumes:
+  data:      
