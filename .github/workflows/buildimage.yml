@@ -31,7 +31,7 @@ jobs:
 
       -
         name: Build and push rbac_audit
-        id: docker_build
+        id: docker_build2
         uses: docker/build-push-action@v2
         with:
           push: true
