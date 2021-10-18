@@ -45,3 +45,9 @@ jobs:
           context: ./companion
           push: true
           tags: docker.io/nospof/rbac-audit-companion:latest
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v2
+        with:
+          context: ./rbac-audit
+          push: true
+          tags: docker.io/nospof/rbac-audit:latest
