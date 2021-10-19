@@ -1,19 +1,118 @@
-apiVersion: batch/v1
-kind: CronJob
+#apiVersion: batch/v1beta1
+#kind: CronJob
+#metadata:
+#  name: rbacaudit
+#spec:
+#  schedule: {{ .Values.schedule | quote  }}
+#  jobTemplate:
+#    spec:
+#      template:
+#        spec:
+#          initContainers:
+#          - name: companion
+#            image: {{ .Values.images.companion }}
+#            resources:
+#              limits:
+#                cpu: "0.2"
+#                memory: "256Mi"
+#              requests:
+#                cpu: "0.1"
+#                memory: "128Mi"  
+#            volumeMounts:
+#            - mountPath: /data
+#              name: data         
+#          containers:
+#          - name: rbacaudit
+#            image: {{ .Values.images.rbacAudit }}
+#            imagePullPolicy: IfNotPresent
+#            resources:
+#              limits:
+#                cpu: "0.2"
+#                memory: "256Mi"
+#              requests:
+#                cpu: "0.1"
+#                memory: "128Mi"
+#            volumeMounts:
+#            - mountPath: /data
+#              name: data
+#          restartPolicy: OnFailure
+#          volumes:
+#          - name: data
+#            emptyDir: {}
+---
+apiVersion: v1
+kind: Pod
 metadata:
-  name: rbac_audit
+  name: rbac
 spec:
-  schedule: {{ .Values.schedule }}
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          containers:
-          - name: rbacAudit
-            image: 
-            imagePullPolicy: IfNotPresent
-            command:
-            - /bin/sh
-            - -c
-            - date; echo Hello from the Kubernetes cluster
-          restartPolicy: OnFailure
+  initContainers:
+  - name: companion
+    image: {{ .Values.images.companion }}
+    resources:
+      limits:
+        cpu: "0.2"
+        memory: "256Mi"
+      requests:
+        cpu: "0.1"
+        memory: "128Mi"  
+    volumeMounts:
+    - mountPath: /data
+      name: data         
+  containers:
+  - name: rbacaudit
+    image: {{ .Values.images.rbacAudit }}
+    imagePullPolicy: IfNotPresent
+    resources:
+      limits:
+        cpu: "0.2"
+        memory: "256Mi"
+      requests:
+        cpu: "0.1"
+        memory: "128Mi"
+    volumeMounts:
+    - mountPath: /data
+      name: data
+  restartPolicy: OnFailure
+  serviceAccountName: reader
+  volumes:
+  - name: data
+    emptyDir: {}
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: rbacauditcm
+data:
+  config: |
+    file:
+      role:
+        path: "/data/roles.json"
+        exclude: ["system:controller:token-cleaner","system:controller:cloud-provider"]
+        deny:
+          verbs: ["*"]
+          apiGroups: ["*"]
+          ressources: ["*"]
+      roleBindings:
+        path: "/data/rolebindings.json"
+        exclude: []
+        deny:
+          verbs: []
+          apiGroups: []
+          ressources: []
+      clusterRoleBindings:
+        path: "/data/clusterrolebindings.json"
+        exclude: []
+        deny:
+          verbs: []
+          apiGroups: []
+          ressources: []
+      clusterRole:
+        path: "/data/clusterroles.json"
+        exclude: ["system:aggregate-to-admin","system:aggregate-to-edit","system:aggregate-to-view","system:auth-delegator","system:basic-user","system:certificates.k8s.io:certificatesigningrequests:nodeclient","system:certificates.k8s.io:certificatesigningrequests:selfnodeclient","system:certificates.k8s.io:kube-apiserver-client-approver","system:certificates.k8s.io:kube-apiserver-client-kubelet-approver","system:certificates.k8s.io:kubelet-serving-approver","system:certificates.k8s.io:legacy-unknown-approver","system:controller:attachdetach-controller","system:controller:certificate-controller","system:controller:clusterrole-aggregation-controller","system:controller:cronjob-controller","system:controller:daemon-set-controller","system:controller:deployment-controller","system:controller:disruption-controller","system:controller:endpoint-controller","system:controller:endpointslice-controller","system:controller:expand-controller","system:controller:generic-garbage-collector","system:controller:horizontal-pod-autoscaler","system:controller:job-controller","system:controller:namespace-controller","system:controller:node-controller","system:controller:persistent-volume-binder","system:controller:pod-garbage-collector","system:controller:pv-protection-controller","system:controller:pvc-protection-controller","system:controller:replicaset-controller","system:controller:replication-controller","system:controller:resourcequota-controller","system:controller:route-controller","system:controller:service-account-controller","system:controller:service-controller","system:controller:statefulset-controller","system:controller:ttl-controller","system:coredns","system:discovery","system:heapster","system:kube-aggregator","system:kube-controller-manager","system:kube-dns","system:kube-scheduler","system:kubelet-api-admin","system:node","system:node-bootstrapper","system:node-problem-detector","system:node-proxier","system:persistent-volume-provisioner","system:public-info-viewer","system:volume-scheduler","view","vpnkit-controller"]
+        deny:
+          verbs: [""]
+          apiGroups: [""]
+          ressources: [""]
+      verbosity: 
+        level: info
+        format: "table"
