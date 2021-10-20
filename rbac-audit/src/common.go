@@ -1,9 +1,12 @@
 package main
 
-import (
-	"log"
-	"os"
-)
+import "os"
+
+func ExitIfError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
 
 // InArray : Check if value are in array string
 // Return true if the string are inside array from parameters : string and and array of string.
@@ -14,22 +17,6 @@ func InArray(str string, list []string) bool {
 		}
 	}
 	return false
-}
-
-// CheckIfErrInfo return exit 0 if the err is checked
-func CheckIfErrInfo(err error) {
-	if err != nil {
-		log.Panic(err)
-		os.Exit(0)
-	}
-}
-
-// CheckIfErrExit return exit 1 if the err is checked. The programm will stopped
-func CheckIfErrExit(err error) {
-	if err != nil {
-		log.Panic(err)
-		os.Exit(1)
-	}
 }
 
 //CheckEnvVarLog return the verbosity mode

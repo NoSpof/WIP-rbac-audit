@@ -51,12 +51,15 @@ type Config struct {
 		Level  string `yaml:"level"`
 		Format string `yaml:"format"`
 	} `yaml:"verbosity"`
+	Context struct {
+		InsideKubernetes bool `yaml:"insideKubernetes"`
+	} `yaml:"context"`
 }
 
 // ValidateConfigPath check if the config path is a file
 func ValidateConfigPath(path string) error {
 	s, err := os.Stat(path)
-	CheckIfErrExit(err)
+	ExitIfError(err)
 	if s.IsDir() {
 		return fmt.Errorf("'%s' is a directory, not a normal file", path)
 	}
@@ -69,7 +72,7 @@ func NewConfig(configPath string) (*Config, error) {
 	config := &Config{}
 	// Open config file
 	file, err := os.Open(configPath)
-	CheckIfErrExit(err)
+	ExitIfError(err)
 	defer file.Close()
 
 	// Init new YAML decode
@@ -86,8 +89,8 @@ func NewConfig(configPath string) (*Config, error) {
 func GetConfig() (*Config, error) {
 	cfgPath := "./config.yml"
 	err := ValidateConfigPath("./config.yml")
-	CheckIfErrExit(err)
+	ExitIfError(err)
 	cfg, err := NewConfig(cfgPath)
-	CheckIfErrExit(err)
+	ExitIfError(err)
 	return cfg, err
 }

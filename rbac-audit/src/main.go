@@ -2,26 +2,41 @@ package main
 
 import (
 	"fmt"
+	"log"
 )
 
 func main() {
 	config, err := NewConfig("./config.yml")
-	CheckIfErrExit(err)
+	ExitIfError(err)
 	if config.Verbosity.Format != "json" {
 		fmt.Println("Welcom on audit tools")
 	}
-	roles := RoleParser(config.File.Role.Path)
-	clusterroles := RoleParser(config.File.ClusterRole.Path)
-	//clusterrolebinding := RoleBindingParser(config.File.ClusterRoleBindings.Path)
-	switch config.Verbosity.Format {
-	case "table":
-		RoleTable(roles, config, "roles")
-		RoleTable(clusterroles, config, "clusterroles")
-	case "json":
-		RoleJSON(roles, config)
-		RoleJSON(clusterroles, config)
-	default:
-		RoleTable(roles, config, "roles")
-		RoleTable(clusterroles, config, "clusterroles")
+	kate := connectk8s("./config.yml")
+	roles := getRoles(kate)
+	//clusterRoles := getClusterRole(kate)
+	//rolesBinding := getRolesBinding(kate)
+	//clusterRolesBinding := getClusterRoleBinding(kate)
+	//switch config.Verbosity.Format {
+	//case "table":
+	//	RoleTable(roles, config, "roles")
+	//	RoleTable(clusterRoles, config, "clusterroles")
+	//case "json":
+	//	RoleJSON(roles, config)
+	//	RoleJSON(clusterRoles, config)
+	//default:
+	//	RoleTable(roles, config, "roles")
+	//	RoleTable(clusterRoles, config, "clusterroles")
+	//}
+	fmt.Println(roles.Items)
+	for _, item := range roles.Items {
+		fmt.Println("#######")
+		if config.Verbosity.Level == "debug" {
+			log.Println("Parsing : " + item.Name + " Roles")
+		}
+		fmt.Println(item.Rules)
+		fmt.Println("#######")
 	}
+	//fmt.Println(clusterRoles)
+	//fmt.Println(rolesBinding)
+	//fmt.Println(clusterRolesBinding)
 }

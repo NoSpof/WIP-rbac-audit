@@ -28,5 +28,7 @@ file:
       apiGroups: [""]
       ressources: [""]
 verbosity: 
-  level: info
+  level: debug
   format: "table"
+context:
+  insideKubernetes: false 
