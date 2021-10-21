@@ -34,14 +34,13 @@ func main() {
 	var description string
 	var result string
 	var configExclude []string
-	//var denyAPIGroups []string
+	var denyAPIGroups []string
 	var denyVerbs []string
-	//var denyResources []string
+	var denyResources []string
 	configExclude = config.File.Role.Exclude
-	//denyAPIGroups = config.File.Role.Deny.APIGroups
+	denyAPIGroups = config.File.Role.Deny.APIGroups
 	denyVerbs = config.File.Role.Deny.Verbs
-	//denyResources = config.File.Role.Deny.Ressources
-	fmt.Println(roles.Items)
+	denyResources = config.File.Role.Deny.Ressources
 	for _, item := range roles.Items {
 		if InArray(item.Name, configExclude) {
 			log.Println(item.Name + "is excluded")
@@ -49,10 +48,24 @@ func main() {
 			fmt.Println("#######")
 			if config.Verbosity.Level == "debug" {
 				log.Println("Parsing : " + item.Name + " Roles")
+				log.Println("Namespace : " + item.Namespace)
 			}
 			for _, rule := range item.Rules {
 				table := tablewriter.NewWriter(os.Stdout)
 				table.SetHeader([]string{"Object", "Details", "Result"})
+				for a := 0; a < len(rule.APIGroups); a++ {
+					if InArray(rule.APIGroups[a], denyAPIGroups) {
+						description = rule.APIGroups[a]
+						result = "Deny"
+					} else {
+						description = rule.APIGroups[a]
+						result = "Approved"
+					}
+					apiGroupsResult := []string{"ApiGroup", description, result}
+					if result != "Approved" || config.Verbosity.Level == "debug" {
+						data = append(data, apiGroupsResult)
+					}
+				}
 				for v := 0; v < len(rule.Verbs); v++ {
 					if InArray(rule.Verbs[v], denyVerbs) {
 						description = rule.Verbs[v]
@@ -66,7 +79,19 @@ func main() {
 						data = append(data, verbsResult)
 					}
 				}
-
+				for r := 0; r < len(rule.Resources); r++ {
+					if InArray(rule.Resources[r], denyResources) {
+						description = rule.Resources[r]
+						result = "Deny"
+					} else {
+						description = rule.Resources[r]
+						result = "Approved"
+					}
+					ResourcesResult := []string{"Resources", description, result}
+					if result != "Approved" || config.Verbosity.Level == "debug" {
+						data = append(data, ResourcesResult)
+					}
+				}
 				for _, line := range data {
 					table.Append(line)
 				}
